@@ -66,7 +66,7 @@ class PublicUserApiTest(TestCase):
         self.assertFalse(user_exists)
 
     def test_create_token_for_user(self):
-        """Test genereates token for valid credentials."""
+        """Test generates token for valid credentials."""
         user_details = {
             'name': 'Test Name',
             'email': 'test@example.com',
@@ -82,6 +82,14 @@ class PublicUserApiTest(TestCase):
 
         self.assertIn('token', res.data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_create_token_email_not_found(self):
+        """Test error returned if user not found for given email."""
+        payload = {'email': 'test@example.com', 'password':'pass123'}
+        res = self.client.post(TOKEN_URL, payload)
+
+        self.assertNotIn('token', res.data)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_create_token_bad_credentials(self):
         """Test returns error if credentials invalid."""
@@ -116,7 +124,7 @@ class PrivateUserApiTests(TestCase):
             password='testpass123',
             name='Test Name',
         )
-        self.cliente = APIClient()
+        self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
     def test_retrieve_profile_success(self):
@@ -143,5 +151,5 @@ class PrivateUserApiTests(TestCase):
 
         self.user.refresh_from_db()
         self.assertEqual(self.user.name, payload['name'])
-        self.asserTrue(self.user.check_password(payload['password']))
+        self.assertTrue(self.user.check_password(payload['password']))
         self.assertEqual(res.status_code, status.HTTP_200_OK)
